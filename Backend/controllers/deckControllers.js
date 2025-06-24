@@ -12,10 +12,10 @@ export const createDeck = async (req, res) => {
             return res.status(404).json({ error: "uid or title is missing" });
         }
         console.log(description);
-        
+
         const deck = new Deck({ title, description, cards: [] });
         console.log(deck);
-        
+
         await deck.save();
 
         const user = await User.findOneAndUpdate(
@@ -27,8 +27,8 @@ export const createDeck = async (req, res) => {
         res.status(201).json({ message: "Deck created", deck });
 
     } catch (error) {
-        console.log("Error ",error);
-        
+        console.log("Error ", error);
+
         res.status(500).json({ error: "Failed to create deck" });
     }
 }
@@ -37,8 +37,8 @@ export const getUserDecks = async (req, res) => {
     try {
         const uid = req.user.uid;
         console.log(uid);
-        
 
+        //you can optimise this
         const user = await User.findOne({ uid }).populate("decks");
 
         if (!user) {
@@ -51,9 +51,11 @@ export const getUserDecks = async (req, res) => {
     }
 }
 
+
+// will implement this later
 export const generateDecksUsingAI = async (req, res) => {
     console.log("ai services are hit");
-    
+
     try {
         const { prompt, title, description } = req.body;
 
@@ -62,7 +64,7 @@ export const generateDecksUsingAI = async (req, res) => {
         }
 
         const generatedCards = await ai_module(prompt);
-        const uid ="";
+        const uid = "";
 
         const deck = new Deck({ title, description, cards: [] });
         deck.cards.push(...generatedCards);

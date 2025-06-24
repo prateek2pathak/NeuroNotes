@@ -31,7 +31,7 @@ export const updateCard = async(req,res)=>{
     const deck = await Decks.findById(deckId);
     if (!deck) return res.status(404).json({ error: "Deck not found" });
 
-    const card = deck.cards.id(cardId);
+    const card = deck.cards.id(cardId); //id() is used becuse it is a subdocument in document
     if (!card) return res.status(404).json({ error: "Card not found" });
 
     card.question = front;

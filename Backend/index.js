@@ -6,7 +6,6 @@ import cors from "cors"
 import deckRoutes from "./routes/deckRoutes.js"
 import cardRoutes from "./routes/cardRoutes.js"
 
-
 dotenv.config();
 db();
 
@@ -14,11 +13,11 @@ const app = express();
 
 const PORT = process.env.PORT || 4040;
 
-// Middleware
+// middleware
 app.use(cors());
 app.use(express.json());
 
-// Routes
+// routes
 app.use('/api/deckRoutes',deckRoutes);
 app.use('/api/cardRoutes',cardRoutes);
 
