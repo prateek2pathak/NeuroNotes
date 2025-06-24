@@ -15,6 +15,7 @@ function waitForUser() {
 
 // Custom hook that returns the fetch function with loading spinner support
 export function useAuthFetch() {
+  
   const { setLoading } = useLoading();
 
   const authFetch = async (url, options = {}) => {
@@ -24,6 +25,8 @@ export function useAuthFetch() {
       if (!user) throw new Error("No authenticated user");
 
       const token = await user.getIdToken();
+      console.log("Token " ,token);
+      
 
       return await fetch(url, {
         ...options,
