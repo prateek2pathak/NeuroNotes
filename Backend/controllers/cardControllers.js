@@ -1,5 +1,6 @@
 import Decks from "../models/decks.js";
 import ai_module from "../AI_module.js"
+import redis from "../redis.js";
 
 export const addCard = async(req,res)=>{
     // console.log(deckId);
@@ -14,6 +15,9 @@ export const addCard = async(req,res)=>{
 
         deck.cards.push({question,answer});
         await deck.save();
+
+        //eviction of cache
+        await redis.del(`getCard:${deckId}`);
 
         return res.status(200).json({message:"Card saved successfully"});
 
@@ -38,6 +42,9 @@ export const updateCard = async(req,res)=>{
     card.answer = back;
     await deck.save();
 
+    //eviction of cache
+    await redis.del(`getCard:${deckId}`);
+
     return res.status(200).json({message:"Card updated successfully"});
   } catch (err) {
     res.status(500).json({ message: "Update error", error: err.message });
@@ -58,7 +65,8 @@ export const deleteCard = async(req,res)=>{
         deck.cards.pull({ _id: cardId });
 
         await deck.save();
-        
+        //eviction of cache
+        await redis.del(`getCard:${deckId}`);
         return res.status(200).json({message:"Card deleted successfully"});
 
     } catch (error) {
@@ -71,10 +79,21 @@ export const deleteCard = async(req,res)=>{
 export const getCards = async(req,res)=>{
     const {deckId} = req.params;
     try {
+        const key = `getCard:${deckId}`;
+
+        const cached = await redis.get(key);
+
+        if(cached){
+            console.log("Cache hit for getting cards!!");
+            return res.status(200).send({cards:JSON.parse(cached),cached:true});
+        }
+
         const deck = await Decks.findById(deckId);
         if (!deck) return res.status(404).json({ error: "Deck not found" });
         const cards = deck.cards;
-        return res.status(200).json(cards);
+
+        await redis.setex(`getCard:${deckId}`,300,JSON.stringify(cards));
+        return res.status(200).json({cards:cards});
 
     } catch (error) {
         return res.status(500).json({message:"Getting card error" , error:error.message});

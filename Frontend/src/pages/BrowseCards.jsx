@@ -4,6 +4,9 @@ import toast from "react-hot-toast";
 import { useParams, useNavigate } from "react-router-dom";
 import EditCardModal from "../components/EditCardModal";
 import { useAuthFetch } from "../utils/authFetch";
+import { getCachedCards, setCardsInCache } from "../utils/cardCache";
+import { fetchCardHandler } from "../handlers/fetchCardHandler";
+import { deleteCardHandler, editCardHandler } from "../handlers/cardHandler";
 
 export default function BrowseCardsPage() {
   const { deckId } = useParams();
@@ -20,70 +23,15 @@ export default function BrowseCardsPage() {
 
   // Fetching all the cards
   useEffect(() => {
-    const fetchCards = async () => {
-      const res = await authFetch(`${import.meta.env.VITE_BASE_URL}api/cardRoutes/deck/${deckId}`);
-      const data = await res.json();
-      setCards(data);
-    }
-    fetchCards();
+    fetchCardHandler(authFetch,setCards,deckId);
   }, [])
 
-
-
   const handleEditCard = async (card) => {
-    const { front, back } = card;
-
-    if (!front || !back) {
-      toast.error("Both question and answer are required!");
-      return;
-    }
-    try {
-      const res = await authFetch(`${import.meta.env.VITE_BASE_URL}api/cardRoutes/update/${deckId}/${cardId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(card),
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.message || "Failed to update");
-      }
-
-      // Update the card in local state
-      setCards((prevCards) =>
-        prevCards.map((c) =>
-          c._id === cardId ? { ...c, question: front, answer: back } : c
-        )
-      );
-
-      toast.success("Card updated successfully!");
-    } catch (error) {
-      console.error("Edit card failed:", error);
-      toast.error("Failed to update card!");
-    }
+    await editCardHandler(card,authFetch,cardId,deckId,setCards,cards);
   };
 
   const handleDeleteCard = async (cardId) => {
-    try {
-      const res = await authFetch(`${import.meta.env.VITE_BASE_URL}api/cardRoutes/delete/${deckId}/${cardId}`, {
-        method: "DELETE",
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Failed to delete card");
-      }
-
-      // Update state to remove deleted card
-      setCards((prevCards) => prevCards.filter((card) => card._id !== cardId));
-
-      toast.success("Card deleted successfully!");
-    } catch (error) {
-      console.error("Delete error:", error);
-      toast.error("Error in deleting card!");
-    }
+    await deleteCardHandler(cardId,authFetch,deckId,setCards,cards);
   };
 
   return (

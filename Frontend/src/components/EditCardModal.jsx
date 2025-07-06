@@ -11,10 +11,6 @@ export default function EditCardModal({ isOpen, onClose, onSubmit, question, ans
         }
     }, [isOpen]);
 
-
-
-
-
     if (!isOpen) return null;
 
     const handleSubmit = (e) => {

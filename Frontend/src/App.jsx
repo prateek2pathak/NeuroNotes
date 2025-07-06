@@ -2,7 +2,6 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
 import AuthPage from "./pages/AuthPage"
 import HomePage from "./pages/HomePage";
 import DecksPage from "./pages/DecksPages";
-// import DecksDetails from "./pages/ḌeckDetails";
 import StudyPage from "./pages/StudyPage";
 import BrowseCardsPage from "./pages/BrowseCards";
 import { Toaster } from 'react-hot-toast';
@@ -13,6 +12,8 @@ function app() {
   const { loading } = useLoading();
   return (
     <>
+      {/*  anything outside router component is visible everywhere */}
+      {/* this adds an overlay on screen in case any loading */}
       {loading && (
         <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center">
           <div className="h-12 w-12 border-4 border-t-indigo-600 border-white rounded-full animate-spin"></div>

@@ -13,9 +13,11 @@ export default function HomePage() {
   const user = useAuth();
 
   return (
+
+    <>
+      <Navbar />
     <div className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 min-h-screen">
 
-      <Navbar />
 
       <div className="max-w-4xl mx-auto px-6 py-30 text-center">
         <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white leading-tight">
@@ -61,5 +63,6 @@ export default function HomePage() {
 
       {showAiFlow && <AiCardFlowModal isOpen={showAiFlow} onClose={() => setShowAiFlow(false)} />}
     </div>
+    </>
   );
 }

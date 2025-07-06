@@ -1,6 +1,5 @@
 // src/pages/DecksPage.jsx
 import { Link } from "react-router-dom";
-import toast from 'react-hot-toast';
 import { FaBook, FaPlus } from "react-icons/fa";
 import { useState } from "react";
 import CreateModalDeck from "../components/CreateDeckModal";
@@ -10,98 +9,41 @@ import useAuth from "../hooks/useAuth";
 import { useEffect } from "react";
 import AddUsingAiModal from "../components/AddUsingAiModal";
 import { useAuthFetch } from "../utils/authFetch";
+import { handleCreateDeck, handleFetchDeck } from "../handlers/deckHandlers";
+import { addCardHandler } from "../handlers/cardHandler";
+import { useDecksContext } from "../context/DecksContext";
 
 
 export default function DecksPage() {
 
-
-
-  const [decks, setDecks] = useState([]);
+  const {decks, setDecks} = useDecksContext();
   const [showModal, setShowModal] = useState(false);
   const [selectedDeck, setSelectedDeck] = useState(null);
   const [addCardModal, setAddCardModel] = useState(false);
-  const [token, setToken] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [addUsingAiCardModel, setAddUsingAiCardModel] = useState(false);
+
+  //getting our user, it gives null if not signed in 
+  //this is our custom hook
+  //this hook sets up a listener and I may take little time to load
   const user = useAuth();
 
   const authFetch = useAuthFetch();
 
   // Fetching all the decks
   useEffect(() => {
+    if(!user) return;
+    //it means it got fetched from cache
+    if(decks.length>0) return;
+    handleFetchDeck(authFetch,setDecks);
+    
+  }, [user]);
 
-
-
-    const fetchDecks = async () => {
-      try {
-        const res = await authFetch(`${import.meta.env.VITE_BASE_URL}api/deckRoutes/getDecks`);
-        const data = await res.json();
-
-        console.log(data);
-
-        // Transform _id to id for UI compatibility if needed
-        const decksWithCardCount = data.decks.map(deck => ({
-          ...deck,
-          id: deck._id,
-          cardCount: deck.cards?.length || 0
-        }));
-
-        setDecks(decksWithCardCount);
-      } catch (err) {
-        console.error("Failed to fetch decks", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchDecks();
-  }, [showModal, user]);
-
-  const handleCreateDeck = async (newDeck) => {
-
-    try {
-      console.log(newDeck);
-
-      const response = await authFetch(`${import.meta.env.VITE_BASE_URL}api/deckRoutes/create`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newDeck),
-      });
-      toast.success("Deck saved in Database successfully!");
-    } catch (error) {
-      console.error("Error creating deck:", error);
-      toast.error("Failed to create deck in db");
-    }
+  const onCreateDeck = async (newDeck) => {
+    await handleCreateDeck(newDeck,authFetch,setDecks);
   };
 
-
   const onAddCard = async (card) => {
-    try {
-      const deck_id = selectedDeck.id;
-      const res = await authFetch(`${import.meta.env.VITE_BASE_URL}api/cardRoutes/add/${deck_id}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(card)
-      })
-
-      // Check if response is NOT ok (e.g. 400 or 500)
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Failed to add card");
-      }
-
-      console.log("Card is added ");
-      toast.success("Card added successfully!");
-
-    } catch (error) {
-      console.error("Card add failed:", error.message);
-      toast.error(error.message || "Failed to add card!");
-    }
-
+    await addCardHandler(card,authFetch,selectedDeck);
   }
 
   return (
@@ -157,7 +99,7 @@ export default function DecksPage() {
             <CreateModalDeck
               isOpen={showModal}
               onClose={() => setShowModal(false)}
-              onCreate={handleCreateDeck}
+              onCreate={onCreateDeck}
             />
           </div>
 
@@ -205,6 +147,7 @@ export default function DecksPage() {
           )}
 
           {/* Add card in deck */}
+          {/* we are passing on props to modal component */}
           <AddCardModal
             isOpen={addCardModal}
             onClose={() => setAddCardModel(false)}

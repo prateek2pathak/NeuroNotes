@@ -1,42 +1,27 @@
 // src/components/LoginForm.jsx
 import { useState } from "react";
-import { auth } from "../firebase";
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { FaEnvelope, FaLock, FaGoogle } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import { loginUsingGoogle } from "../handlers/googleLoginHandler";
+import { loginHandler } from "../handlers/localAuthenticator";
 
 export default function LoginForm() {
-  
+
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
+  
   const navigate = useNavigate();
 
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleLogin = async () => {
-    const { email, password } = formData;
-    setError("");
-
-    if (!email || !password) return setError("Please fill in all fields.");
-
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      navigate('/');
-    } catch (err) {
-      setError(err.message);
-    }
+    await loginHandler(setError,formData,navigate);
   };
 
   const handleGoogleLogin = async () => {
-    const provider = new GoogleAuthProvider();
-    try {
-      await signInWithPopup(auth, provider);
-      navigate('/');
-    } catch (err) {
-      setError(err.message);
-    }
-  };
+    await loginUsingGoogle(navigate, setError);
+  }
 
   return (
     <div className="w-full max-w-md bg-white/80 dark:bg-gray-900/80 backdrop-blur-md p-8 rounded-2xl shadow-xl border dark:border-gray-700">

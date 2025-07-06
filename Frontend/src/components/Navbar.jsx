@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { FaBrain, FaBars, FaTimes } from "react-icons/fa";
 import { auth } from "../firebase";
 import useAuth from "../hooks/useAuth";
+import { clearCachedToken } from "../utils/authtokenManager";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -12,14 +13,10 @@ export default function Navbar() {
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
-  const handleLogout = async () => {
-    console.log(user);
-    const idToken = await user.getIdToken();
-
-    console.log("access token " ,user.accessToken);
-    
-    
+  const handleLogout = async () => {    
     await auth.signOut();
+    localStorage.removeItem("user");
+    clearCachedToken();
     navigate("/auth");
   };
 

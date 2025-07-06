@@ -2,6 +2,7 @@ import express from "express"
 import Deck from "../models/decks.js"
 import User from "../models/user.js"
 import ai_module from "../AI_module.js"
+import redis from "../redis.js"
 
 
 export const createDeck = async (req, res) => {
@@ -24,6 +25,9 @@ export const createDeck = async (req, res) => {
             { upsert: true, new: true }
         );
 
+        //eviction of cache
+        await redis.del(`decks:${req.user.uid}`);
+
         res.status(201).json({ message: "Deck created", deck });
 
     } catch (error) {
@@ -36,7 +40,18 @@ export const createDeck = async (req, res) => {
 export const getUserDecks = async (req, res) => {
     try {
         const uid = req.user.uid;
-        console.log(uid);
+        const key = `decks:${req.user.uid}`;
+
+        const cached = await redis.get(key);
+
+        if(cached){
+            console.log("Wow!! Cache hit ");
+            return res.status(200).json({decks:JSON.parse(cached),cached: true});
+        }
+
+        if (!req.user || !req.user.uid) {
+            return res.status(401).json({ error: "Unauthorized" });
+        }
 
         //you can optimise this
         const user = await User.findOne({ uid }).populate("decks");
@@ -45,7 +60,10 @@ export const getUserDecks = async (req, res) => {
             return res.status(404).json({ error: "User not found" });
         }
 
-        res.status(200).json(user);
+        //now it has expiry of 300 seconds
+        await redis.setex(`decks:${req.user.uid}`,300, JSON.stringify(user.decks));
+        
+        res.status(200).json({decks:user.decks,cached:false});
     } catch (error) {
         res.status(500).json({ error: "Failed to fetch decks" });
     }

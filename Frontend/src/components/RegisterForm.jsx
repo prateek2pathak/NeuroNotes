@@ -1,14 +1,10 @@
 // src/components/RegisterForm.jsx
 import { useState } from "react";
 import { auth } from "../firebase";
-import {
-  createUserWithEmailAndPassword,
-  updateProfile,
-  GoogleAuthProvider,
-  signInWithPopup,
-} from "firebase/auth";
-import { FaUser, FaEnvelope, FaLock, FaBriefcase, FaHashtag, FaGoogle } from "react-icons/fa";
+import { FaUser, FaEnvelope, FaLock, FaGoogle } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import { loginUsingGoogle } from "../handlers/googleLoginHandler";
+import { registerHandler } from "../handlers/localAuthenticator";
 
 export default function RegisterForm() {
   const [formData, setFormData] = useState({
@@ -28,43 +24,11 @@ export default function RegisterForm() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleRegister = async () => {
-    setError("");
-    setSuccess("");
-
-    const { name, email, password, confirmPassword } = formData;
-
-    if (!name || !email || !password || !confirmPassword) {
-      return setError("All fields are required.");
-    }
-    if (password !== confirmPassword) {
-      return setError("Passwords do not match.");
-    }
-
-    try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      await updateProfile(auth.currentUser, { displayName: name });
-
-      setSuccess("Registered successfully.");
-      setFormData({
-        name: "",
-        email: "",
-        password: "",
-        confirmPassword: "",
-      });
-      navigate('/home');
-    } catch (err) {
-      setError(err.message);
-    }
+      await registerHandler(setError,setSuccess,formData,navigate,setFormData);
   };
 
   const handleGoogleSignUp = async () => {
-    const provider = new GoogleAuthProvider();
-    try {
-      await signInWithPopup(auth, provider);
-      navigate('/home');
-    } catch (err) {
-      setError(err.message);
-    }
+    await loginUsingGoogle(navigate,setError);
   };
 
   const fields = [

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import toast from "react-hot-toast";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuthFetch } from "../utils/authFetch";
+import { fetchCardHandler } from "../handlers/fetchCardHandler";
 
 
 export default function StudyPage() {
@@ -9,30 +9,10 @@ export default function StudyPage() {
   const navigate = useNavigate();
   const authFetch = useAuthFetch();
 
-
   const [cards, setCards] = useState([]);
 
   useEffect(() => {
-    const loadCard = async () => {
-      try {
-        const res = await authFetch(`${import.meta.env.VITE_BASE_URL}api/cardRoutes/deck/${deckId}`)
-        if (!res.ok) {
-          console.log(res);
-
-          throw new Error("res");
-
-        }
-        const data = await res.json();
-        setCards(data);
-        console.log("Cards loaded");
-        toast.success("Cards loaded");
-      } catch (error) {
-        console.error("Load card failed:", error);
-        toast.error("Failed to load card!");
-      }
-
-    }
-    loadCard();
+    fetchCardHandler(authFetch,setCards,deckId);
   }, []);
 
   const [currentCardIndex, setCurrentCardIndex] = useState(0);

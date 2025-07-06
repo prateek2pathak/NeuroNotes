@@ -17,7 +17,6 @@ export default function AddUsingAiModal({ isOpen, onClose, deckId }) {
     try {
       const res = await authFetch(`${import.meta.env.VITE_BASE_URL}api/cardRoutes/generateAI`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt, deckId }),
       });
 

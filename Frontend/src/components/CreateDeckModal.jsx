@@ -14,6 +14,7 @@ export default function CreateModalDeck({isOpen,onClose,onCreate}){
         onClose();
     }
 
+    //only comes up if modal is open
     if(!isOpen) return null;
     return (
         <>
