@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { FaBrain, FaBars, FaTimes } from "react-icons/fa";
 import { auth } from "../firebase";
 import useAuth from "../hooks/useAuth";
-import { clearCachedToken } from "../utils/authtokenManager";
+import { clearCachedToken } from "../utils/authTokenManager";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
