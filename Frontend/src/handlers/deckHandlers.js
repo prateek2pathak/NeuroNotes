@@ -12,7 +12,6 @@ export const handleCreateDeck = async (newDeck, authFetch, setDecks) => {
         //you should wait for response to come before doing .deck
         //you made an error here 
         const res = await response.json();
-
         setDecks((prev) => {
             return [
                 ...prev,
@@ -22,8 +21,8 @@ export const handleCreateDeck = async (newDeck, authFetch, setDecks) => {
                     cardCount: 0,
                 },
             ]
-        })
-
+        });
+        localStorage.removeItem("decks");
         toast.success("Deck saved in Database successfully!");
     }
     catch (error) {
@@ -33,8 +32,25 @@ export const handleCreateDeck = async (newDeck, authFetch, setDecks) => {
 };
 
 
-export const handleFetchDeck = async (authFetch,setDecks) => {
+export const handleFetchDeck = async (authFetch, setDecks) => {
     try {
+        // localStorage.removeItem("decks");
+        const cached = localStorage.getItem("decks");
+
+        if (cached) {
+            const { data, cachedAt } = JSON.parse(cached);
+            const expiry = Date.now() - cachedAt;
+
+            if(expiry<15*60*1000){
+                setDecks(data);
+                console.log("Decks loaded from cache", data);
+                return;
+            }
+            else{
+                localStorage.removeItem("decks");
+            }
+        }
+
         const res = await authFetch(`${import.meta.env.VITE_BASE_URL}api/deckRoutes/getDecks`);
         const data = await res.json();
 
@@ -49,6 +65,12 @@ export const handleFetchDeck = async (authFetch,setDecks) => {
         console.log(decksWithCardCount);
 
         setDecks(decksWithCardCount);
+
+        localStorage.setItem("decks", JSON.stringify({
+            data: decksWithCardCount,
+            cachedAt: Date.now()
+        }))
+
     } catch (err) {
         console.error("Failed to fetch decks", err);
     }

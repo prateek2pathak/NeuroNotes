@@ -20,7 +20,6 @@ app.use(express.json());
 // routes
 app.use('/api/deckRoutes',deckRoutes);
 app.use('/api/cardRoutes',cardRoutes);
-app.use
 
 app.listen(PORT,()=>{
     console.log(`Server is running on ${PORT}`);

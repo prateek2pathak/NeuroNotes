@@ -89,6 +89,8 @@ export const getCards = async(req,res)=>{
         }
 
         const deck = await Decks.findById(deckId);
+        console.log("Card loaded from ",deckId);
+        
         if (!deck) return res.status(404).json({ error: "Deck not found" });
         const cards = deck.cards;
 

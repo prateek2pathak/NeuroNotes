@@ -1,6 +1,6 @@
 // src/pages/DecksPage.jsx
 import { Link } from "react-router-dom";
-import { FaBook, FaPlus } from "react-icons/fa";
+import { FaBook, FaPlus, FaTrash } from "react-icons/fa";
 import { useState } from "react";
 import CreateModalDeck from "../components/CreateDeckModal";
 import AddCardModal from "../components/AddCardModal";
@@ -12,11 +12,12 @@ import { useAuthFetch } from "../utils/authFetch";
 import { handleCreateDeck, handleFetchDeck } from "../handlers/deckHandlers";
 import { addCardHandler } from "../handlers/cardHandler";
 import { useDecksContext } from "../context/DecksContext";
+import toast from "react-hot-toast";
 
 
 export default function DecksPage() {
 
-  const {decks, setDecks} = useDecksContext();
+  const { decks, setDecks, loadedFromCache, setLoadedFromCache } = useDecksContext();
   const [showModal, setShowModal] = useState(false);
   const [selectedDeck, setSelectedDeck] = useState(null);
   const [addCardModal, setAddCardModel] = useState(false);
@@ -31,19 +32,43 @@ export default function DecksPage() {
 
   // Fetching all the decks
   useEffect(() => {
-    if(!user) return;
-    //it means it got fetched from cache
-    if(decks.length>0) return;
-    handleFetchDeck(authFetch,setDecks);
-    
-  }, [user]);
+      handleFetchDeck(authFetch, setDecks);
+  }, []);
 
   const onCreateDeck = async (newDeck) => {
-    await handleCreateDeck(newDeck,authFetch,setDecks);
+    await handleCreateDeck(newDeck, authFetch, setDecks);
   };
 
   const onAddCard = async (card) => {
-    await addCardHandler(card,authFetch,selectedDeck);
+    await addCardHandler(card, authFetch, selectedDeck);
+  }
+
+  const onHandleDelete = async (deckId) => {
+    try {
+      const res = await authFetch(`${import.meta.env.VITE_BASE_URL}api/deckRoutes/deleteDeck`, {
+        method: "DELETE",
+        body: JSON.stringify({
+          deckId
+        })
+      });
+
+      const response = await res.json();
+
+      if (!res.ok) {
+        throw new Error("Error in deleting deck ", response.error);
+      }
+
+      setDecks(decks.filter((deck) => {
+        return deck.id !== deckId;
+      }))
+      localStorage.removeItem("decks");
+      console.log("Deck delete successfully");
+      toast.success("Deck deleted");
+
+    } catch (error) {
+      console.error("Error to delete deck successfully ", error);
+      toast.error(error);
+    }
   }
 
   return (
@@ -69,18 +94,22 @@ export default function DecksPage() {
               <div
                 key={deck.id}
                 onClick={() => setSelectedDeck(deck)}
-                className="cursor-pointer bg-white dark:bg-gray-800 shadow-md rounded-lg p-5 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition"
+                className="relative cursor-pointer bg-white dark:bg-gray-800 shadow-md rounded-lg p-5 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition"
               >
+
                 <div className="flex items-center gap-3 mb-2">
                   <FaBook className="text-indigo-500 text-xl" />
                   <h2 className="text-xl font-semibold">{deck.title}</h2>
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{deck.description}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                  {deck.description}
+                </p>
                 <p className="text-sm font-medium text-indigo-600 dark:text-indigo-400">
                   {deck.cardCount} cards
                 </p>
               </div>
             ))}
+
             {decks.length === 0 && (
               <div className="col-span-full flex flex-col items-center justify-center text-center mt-16">
                 <FaBook className="text-5xl text-gray-400 dark:text-gray-600 mb-4" />
@@ -106,7 +135,23 @@ export default function DecksPage() {
           {/* Modal for deck actions */}
           {selectedDeck && (
             <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
-              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl max-w-md w-full text-center space-y-4">
+              <div className="relative bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl max-w-md w-full text-center space-y-4">
+
+                {/* 🗑️ Delete Icon Top Right */}
+                <button
+                  onClick={() => {
+                    const confirmDelete = window.confirm("Are you sure you want to delete this deck?");
+                    if (confirmDelete) {
+                      onHandleDelete(selectedDeck.id);
+                      setSelectedDeck(null);
+                    }
+                  }}
+                  className="absolute top-3 right-3 text-zinc-500 hover:text-red-700 "
+                  title="Delete Deck"
+                >
+                  <FaTrash />
+                </button>
+
                 <h2 className="text-2xl font-bold">{selectedDeck.title}</h2>
                 <p className="text-gray-600 dark:text-gray-400">{selectedDeck.description}</p>
 
@@ -127,7 +172,7 @@ export default function DecksPage() {
                     onClick={() => setAddUsingAiCardModel(true)}
                     className="cursor-pointer bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
                   >
-                    ➕ Add Cards using AI
+                    🤖 Add Cards using AI
                   </div>
                   <Link
                     to={`/decks/browse/${selectedDeck.id}`}
@@ -145,6 +190,7 @@ export default function DecksPage() {
               </div>
             </div>
           )}
+
 
           {/* Add card in deck */}
           {/* we are passing on props to modal component */}

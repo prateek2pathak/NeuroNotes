@@ -3,6 +3,7 @@ import Deck from "../models/decks.js"
 import User from "../models/user.js"
 import ai_module from "../AI_module.js"
 import redis from "../redis.js"
+import mongoose from "mongoose"
 
 
 export const createDeck = async (req, res) => {
@@ -66,6 +67,37 @@ export const getUserDecks = async (req, res) => {
         res.status(200).json({decks:user.decks,cached:false});
     } catch (error) {
         res.status(500).json({ error: "Failed to fetch decks" });
+    }
+}
+
+export const removeUserDeck = async(req,res)=>{
+    try {
+        const uid = req.user.uid;
+        const deckId = req.body.deckId;
+        console.log("Deck id to dlt ",deckId);
+        
+
+        const deletedDeck = await Deck.findByIdAndDelete(deckId);
+        // if(!deletedDeck){
+        //     return res.status(404).json({error:"Deck not found"});
+        // }
+
+        const user = await User.findOne({uid});
+        if(!user){
+            return res.status(404).json({error:"User not found!"});
+        }
+
+        const objectId = new mongoose.Types.ObjectId(deckId);
+        user.decks.pull(objectId);
+        await user.save();
+
+        //eviction of cache
+        await redis.del(`decks:${req.user.uid}`);
+
+        return res.status(200).json({message: "Deck removed successfully",deckId})
+    } catch (error) {
+        console.error("Error in deleting deck ",error);
+        return res.status(500).json({error:"Internal server error!!"});
     }
 }
 
