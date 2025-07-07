@@ -1,8 +1,8 @@
 // src/utils/authFetch.js
 import { auth } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { useLoading } from "../context/LoadingContext";
-import { getCachedToken, setCachedToken } from "./authtokenManager";
+import { useLoading } from "../context/LoadingContext.js";
+import { getCachedToken, setCachedToken } from "./authtokenManager.js";
 
 function waitForUser() {
   //creating a promise as checking status takes time
