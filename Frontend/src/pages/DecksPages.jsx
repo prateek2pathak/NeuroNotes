@@ -1,4 +1,3 @@
-// src/pages/DecksPage.jsx
 import { Link } from "react-router-dom";
 import { FaBook, FaPlus, FaTrash } from "react-icons/fa";
 import { useState } from "react";
@@ -9,7 +8,7 @@ import useAuth from "../hooks/useAuth";
 import { useEffect } from "react";
 import AddUsingAiModal from "../components/AddUsingAiModal";
 import { useAuthFetch } from "../utils/authFetch";
-import { handleCreateDeck, handleFetchDeck } from "../handlers/deckHandlers";
+import { deleteDeckHandler, handleCreateDeck, handleFetchDeck } from "../handlers/deckHandlers";
 import { addCardHandler } from "../handlers/cardHandler";
 import { useDecksContext } from "../context/DecksContext";
 import toast from "react-hot-toast";
@@ -17,7 +16,7 @@ import toast from "react-hot-toast";
 
 export default function DecksPage() {
 
-  const { decks, setDecks, loadedFromCache, setLoadedFromCache } = useDecksContext();
+  const { decks, setDecks} = useDecksContext();
   const [showModal, setShowModal] = useState(false);
   const [selectedDeck, setSelectedDeck] = useState(null);
   const [addCardModal, setAddCardModel] = useState(false);
@@ -36,39 +35,15 @@ export default function DecksPage() {
   }, []);
 
   const onCreateDeck = async (newDeck) => {
-    await handleCreateDeck(newDeck, authFetch, setDecks);
+     handleCreateDeck(decks,newDeck, authFetch, setDecks);
   };
 
   const onAddCard = async (card) => {
-    await addCardHandler(card, authFetch, selectedDeck);
+     addCardHandler(card, authFetch, selectedDeck);
   }
 
   const onHandleDelete = async (deckId) => {
-    try {
-      const res = await authFetch(`${import.meta.env.VITE_BASE_URL}api/deckRoutes/deleteDeck`, {
-        method: "DELETE",
-        body: JSON.stringify({
-          deckId
-        })
-      });
-
-      const response = await res.json();
-
-      if (!res.ok) {
-        throw new Error("Error in deleting deck ", response.error);
-      }
-
-      setDecks(decks.filter((deck) => {
-        return deck.id !== deckId;
-      }))
-      localStorage.removeItem("decks");
-      console.log("Deck delete successfully");
-      toast.success("Deck deleted");
-
-    } catch (error) {
-      console.error("Error to delete deck successfully ", error);
-      toast.error(error);
-    }
+     deleteDeckHandler(deckId,authFetch,decks,setDecks);
   }
 
   return (

@@ -2,6 +2,7 @@ import toast from "react-hot-toast";
 import { getCachedCards, setCardsInCache } from "../utils/cardCache";
 
 export const fetchCardHandler = async (authFetch, setCards, deckId) => {
+    
     const cachedCards = getCachedCards(deckId);
 
     try {

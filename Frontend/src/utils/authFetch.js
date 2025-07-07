@@ -1,4 +1,3 @@
-// src/utils/authFetch.js
 import { auth } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { useLoading } from "../context/LoadingContext";

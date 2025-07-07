@@ -1,4 +1,3 @@
-// src/components/RegisterForm.jsx
 import { useState } from "react";
 import { auth } from "../firebase";
 import { FaUser, FaEnvelope, FaLock, FaGoogle } from "react-icons/fa";

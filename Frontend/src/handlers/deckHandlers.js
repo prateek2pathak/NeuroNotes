@@ -1,6 +1,7 @@
 import toast from "react-hot-toast";
+import { updateDecksCache } from "../utils/cacheUtils";
 
-export const handleCreateDeck = async (newDeck, authFetch, setDecks) => {
+export const handleCreateDeck = async (decks,newDeck, authFetch, setDecks) => {
 
     try {
         console.log(newDeck);
@@ -12,17 +13,15 @@ export const handleCreateDeck = async (newDeck, authFetch, setDecks) => {
         //you should wait for response to come before doing .deck
         //you made an error here 
         const res = await response.json();
-        setDecks((prev) => {
-            return [
-                ...prev,
-                {
-                    ...res.deck,
-                    id: res.deck._id,
-                    cardCount: 0,
-                },
-            ]
-        });
-        localStorage.removeItem("decks");
+
+        const updatedDecks = [...decks,{
+            ...res.deck,
+            id:res.deck._id,
+            cardCount:0
+        }];
+        setDecks(updatedDecks);
+        updateDecksCache(updatedDecks);
+        
         toast.success("Deck saved in Database successfully!");
     }
     catch (error) {
@@ -75,3 +74,35 @@ export const handleFetchDeck = async (authFetch, setDecks) => {
         console.error("Failed to fetch decks", err);
     }
 };
+
+
+export const deleteDeckHandler = async (deckId,authFetch,decks,setDecks) => {
+    try {
+      const res = await authFetch(`${import.meta.env.VITE_BASE_URL}api/deckRoutes/deleteDeck`, {
+        method: "DELETE",
+        body: JSON.stringify({
+          deckId
+        })
+      });
+
+      const response = await res.json();
+
+      if (!res.ok) {
+        throw new Error("Error in deleting deck ", response.error);
+      }
+
+      const updatedDecks = decks.filter((deck)=>{
+        return deck._id !== deckId;
+      })
+
+      setDecks(updatedDecks);
+      updateDecksCache(updatedDecks);
+
+      console.log("Deck delete successfully");
+      toast.success("Deck deleted");
+
+    } catch (error) {
+      console.error("Error to delete deck successfully ", error);
+      toast.error(error);
+    }
+  }
