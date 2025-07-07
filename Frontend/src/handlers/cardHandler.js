@@ -48,7 +48,7 @@ export const deleteCardHandler = async (cardId, authFetch, deckId, setCards, car
       const errorData = await res.json();
       throw new Error(errorData.message || "Failed to delete card");
     }
-
+    localStorage.removeItem("decks");
     toast.success("Card deleted successfully!");
   } catch (error) {
     console.error("Delete error:", error);
