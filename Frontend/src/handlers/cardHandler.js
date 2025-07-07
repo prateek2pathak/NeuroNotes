@@ -33,27 +33,32 @@ export const addCardHandler = async (card, authFetch, selectedDeck) => {
 }
 
 export const deleteCardHandler = async (cardId, authFetch, deckId, setCards, cards) => {
+  
+  const updatedCards = cards.filter((card) => card._id !== cardId);
+  setCards(updatedCards);
+  setCardsInCache(deckId, updatedCards);
+
   try {
-    const res = await authFetch(`${import.meta.env.VITE_BASE_URL}api/cardRoutes/delete/${deckId}/${cardId}`, {
-      method: "DELETE",
-    });
+    const res = await authFetch(
+      `${import.meta.env.VITE_BASE_URL}api/cardRoutes/delete/${deckId}/${cardId}`,
+      { method: "DELETE" }
+    );
 
     if (!res.ok) {
       const errorData = await res.json();
       throw new Error(errorData.message || "Failed to delete card");
     }
 
-    // Update state to remove deleted card
-    const updatedCards = cards.filter((card)=> card._id!== cardId);
-    setCards(updatedCards);
-    setCardsInCache(deckId, updatedCards);
-
     toast.success("Card deleted successfully!");
   } catch (error) {
     console.error("Delete error:", error);
     toast.error("Error in deleting card!");
+
+    setCards(cards);
+    setCardsInCache(deckId, cards);
   }
 };
+
 
 
 export const editCardHandler = async (card, authFetch, cardId, deckId, setCards, cards) => {

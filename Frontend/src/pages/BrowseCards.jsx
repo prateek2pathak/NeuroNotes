@@ -31,7 +31,8 @@ export default function BrowseCardsPage() {
   };
 
   const handleDeleteCard = async (cardId) => {
-    await deleteCardHandler(cardId,authFetch,deckId,setCards,cards);
+      deleteCardHandler(cardId,authFetch,deckId,setCards,cards);
+      
   };
 
   return (

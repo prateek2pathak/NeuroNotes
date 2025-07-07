@@ -21,7 +21,7 @@ export function useAuthFetch() {
   const { setLoading } = useLoading();
 
   const authFetch = async (url, options = {}) => {
-    setLoading(true);
+    // setLoading(true);
     try {
 
       const user = auth.currentUser || await waitForUser();
