@@ -18,6 +18,7 @@ export const addCard = async(req,res)=>{
 
         //eviction of cache
         await redis.del(`getCard:${deckId}`);
+        await redis.del(`decks:${req.user.uid}`);
 
         return res.status(200).json({message:"Card saved successfully"});
 
@@ -65,8 +66,11 @@ export const deleteCard = async(req,res)=>{
         deck.cards.pull({ _id: cardId });
 
         await deck.save();
+        
         //eviction of cache
         await redis.del(`getCard:${deckId}`);
+        await redis.del(`decks:${req.user.uid}`);
+
         return res.status(200).json({message:"Card deleted successfully"});
 
     } catch (error) {

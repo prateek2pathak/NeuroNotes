@@ -14,9 +14,11 @@ export const addCardHandler = async (card, authFetch, selectedDeck) => {
       throw new Error(errorData.message || "Failed to add card");
     }
 
-    const oldCards = getCachedCards(selectedDeck.id) || [];
-    const updatedCards = [...oldCards,card];
-    setCardsInCache(selectedDeck.id,updatedCards);
+    const oldCards = getCachedCards(selectedDeck.id);
+    if(oldCards){
+      const updatedCards = [...oldCards,card];
+      setCardsInCache(selectedDeck.id,updatedCards);
+    }
     
     localStorage.removeItem("decks");
     
