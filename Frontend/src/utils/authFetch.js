@@ -2,7 +2,7 @@
 import { auth } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { useLoading } from "../context/LoadingContext.js";
-import { getCachedToken, setCachedToken } from "./authtokenManager.js";
+import { getCachedToken, setCachedToken } from "./authTokenManager";
 
 function waitForUser() {
   //creating a promise as checking status takes time
